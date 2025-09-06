@@ -1,16 +1,14 @@
-# This is a sample Python script.
+"""
+1 - colocar cada linha em 1 índice de uma lista, pois terei uma lista de todas as linhas
+2 - configurar o email smtp
+"""
 
-# Press Shift+F10 to execute it or replace it with your code.
-# Press Double Shift to search everywhere for classes, files, tool windows, actions, and settings.
+import pandas as pd
+# 1
+df = pd.read_excel('Planilha Renato.xlsx', sheet_name='Prospects Insac', usecols='A:E')
 
-
-def print_hi(name):
-    # Use a breakpoint in the code line below to debug your script.
-    print(f'Hi, {name}')  # Press Ctrl+F8 to toggle the breakpoint.
-
-
-# Press the green button in the gutter to run the script.
-if __name__ == '__main__':
-    print_hi('PyCharm')
-
-# See PyCharm help at https://www.jetbrains.com/help/pycharm/
+df = df.map(lambda x: x.strip().replace('\n', '') if isinstance(x, str) else x)
+capitalizar_colums = ['Cliente prospect', 'Contato', 'Cidade']
+df[capitalizar_colums] = df[capitalizar_colums].apply(lambda x: x.str.title())
+emails = df[['Cliente prospect', 'Contato', 'e-mail', 'telefone', 'Cidade']].to_dict('records')
+print(emails)

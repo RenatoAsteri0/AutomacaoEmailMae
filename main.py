@@ -1,26 +1,25 @@
-"""
-1 - colocar cada linha em 1 índice de uma lista, pois terei uma lista de todas as linhas
-2 - configurar o email smtp
-"""
-
 import smtplib
 from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
 import pandas as pd
+from email.mime.image import MIMEImage
+
 # 1
 df = pd.read_excel('BaseClienteMarcia.xlsx')
-data = df.to_dict()
+data = df.to_dict("records")
 #for key, value in data.items():
 #    print(f'{key}: {value[9]}')
 
 # 2 mandar email
-test_dict = [
+clientes = [
     {
-    'Cliente prospect': 'RenatoAsterio',
-    'Contato': '19 996234793',
-    'e-mail': 'renato.asterio@hotmail.com',
-    'Cidade': 'indaiatuba'
-}]
+        'Cliente prospect': 'RenatoAsterio',
+        'Contato': '19 996234793',
+        'e-mail': 'renato.asterio@hotmail.com',
+        'Cidade': 'Indaiatuba'
+    },
+    # adicione outros clientes aqui
+]
 
 # credenciais Titan
 smtp_server = 'smtp.titan.email'
@@ -29,14 +28,18 @@ smtp_username = 'comercial@marciaasterio.com'
 smtp_password = 'Belinha10@'
 from_addr = 'comercial@marciaasterio.com'
 
-# loop para cada cliente
-for cliente in test_dict:
-    msg = MIMEMultipart("alternative")
+# lista de imagens da apresentação
+imagens = ["APRESENTAÇÃO_INSAC__page-0001.jpg", "APRESENTAÇÃO_INSAC__page-0002.jpg", "APRESENTAÇÃO_INSAC__page-0003.jpg",
+           "APRESENTAÇÃO_INSAC__page-0004.jpg", "APRESENTAÇÃO_INSAC__page-0005.jpg"]
+
+for cliente in clientes:
+    msg = MIMEMultipart("related")
     msg['From'] = from_addr
     msg['To'] = cliente['e-mail']
-    msg['Subject'] = f"Apresentação Comercial - {cliente['Cliente prospect']}"
+    bcc = "marcia.insac@gmail.com"
+    msg['Subject'] = f"Apresentação INSAC Embalagens - {cliente['Cliente prospect']}"
 
-    # corpo em HTML
+    # HTML com todas as imagens
     html = f"""
     <html>
         <body style="font-family: Arial, sans-serif; line-height: 1.6;">
@@ -44,32 +47,41 @@ for cliente in test_dict:
             <p>
                 Espero que esteja bem!<br>
                 Segue abaixo a apresentação comercial da nossa empresa.<br>
-                Estaremos à disposição para esclarecer dúvidas e avançar com uma proposta personalizada.
+                Estou à disposição para esclarecer dúvidas e avançar com uma proposta personalizada.
             </p>
-            <p>
-                <b>Cidade:</b> {cliente['Cidade']}
-            </p>
+            <p>Segue a apresentação comercial da nossa empresa:</p>
+    """
+    for i, img_name in enumerate(imagens):
+        html += f'<p><img src="cid:img{i + 1}" style="max-width:600px"></p>'
+
+    html += """
             <p>Atenciosamente,</p>
             <p>
                 <b>Equipe Comercial</b><br>
                 Marcia Asterio Consultoria<br>
-                📧 comercial@marciaasterio.com<br>
-                📞 (11) 99999-9999
+                📧 Email: comercial@marciaasterio.com<br>
+                📞 Telefone/WhatsApp: (19) 98167-0086
             </p>
         </body>
     </html>
     """
-
-    # anexar html ao e-mail
     msg.attach(MIMEText(html, "html"))
 
+    # anexar imagens
+    for i, img_name in enumerate(imagens):
+        with open(img_name, "rb") as f:
+            img = MIMEImage(f.read())
+            img.add_header("Content-ID", f"<img{i + 1}>")
+            msg.attach(img)
+
     # envio
-    with smtplib.SMTP(smtp_server, smtp_port) as connection:
-        connection.starttls()
-        connection.login(smtp_username, smtp_password)
-        connection.sendmail(from_addr, cliente['e-mail'], msg.as_string())
+    with smtplib.SMTP(smtp_server, smtp_port) as server:
+        server.starttls()
+        server.login(smtp_username, smtp_password)
+        server.sendmail(from_addr, [cliente['e-mail'], bcc], msg.as_string())
 
     print(f"✔ Email enviado para {cliente['Cliente prospect']} ({cliente['e-mail']})")
+
 '''
 df = df.map(lambda x: x.strip().replace('\n', '').replace('-', '').replace('(', '').
             replace(')', '') if isinstance(x, str) else x)

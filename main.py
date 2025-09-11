@@ -7,8 +7,6 @@ from email.mime.image import MIMEImage
 # 1
 df = pd.read_excel('BaseClienteMarcia.xlsx')
 data = df.to_dict("records")
-#for key, value in data.items():
-#    print(f'{key}: {value[9]}')
 
 # 2 mandar email
 clientes = [
@@ -32,24 +30,23 @@ from_addr = 'comercial@marciaasterio.com'
 imagens = ["APRESENTAÇÃO_INSAC__page-0001.jpg", "APRESENTAÇÃO_INSAC__page-0002.jpg", "APRESENTAÇÃO_INSAC__page-0003.jpg",
            "APRESENTAÇÃO_INSAC__page-0004.jpg", "APRESENTAÇÃO_INSAC__page-0005.jpg"]
 
-for cliente in clientes:
+for cliente in data:
     msg = MIMEMultipart("related")
     msg['From'] = from_addr
     msg['To'] = cliente['e-mail']
     bcc = "marcia.insac@gmail.com"
-    msg['Subject'] = f"Apresentação INSAC Embalagens - {cliente['Cliente prospect']}"
+    msg['Subject'] = f"Apresentação INSAC Embalagens à {cliente['Cliente prospect']}"
 
     # HTML com todas as imagens
     html = f"""
     <html>
         <body style="font-family: Arial, sans-serif; line-height: 1.6;">
-            <p>Olá <b>{cliente['Cliente prospect']}</b>,</p>
+            <p>Olá <b>{cliente['Contato']}</b>,</p>
             <p>
                 Espero que esteja bem!<br>
-                Segue abaixo a apresentação comercial da nossa empresa.<br>
+                Segue abaixo a Apresentação Comercial da nossa empresa.<br>
                 Estou à disposição para esclarecer dúvidas e avançar com uma proposta personalizada.
             </p>
-            <p>Segue a apresentação comercial da nossa empresa:</p>
     """
     for i, img_name in enumerate(imagens):
         html += f'<p><img src="cid:img{i + 1}" style="max-width:600px"></p>'
@@ -58,7 +55,7 @@ for cliente in clientes:
             <p>Atenciosamente,</p>
             <p>
                 <b>Equipe Comercial</b><br>
-                Marcia Asterio Consultoria<br>
+                Marcia Astério Consultoria<br>
                 📧 Email: comercial@marciaasterio.com<br>
                 📞 Telefone/WhatsApp: (19) 98167-0086
             </p>
@@ -80,7 +77,7 @@ for cliente in clientes:
         server.login(smtp_username, smtp_password)
         server.sendmail(from_addr, [cliente['e-mail'], bcc], msg.as_string())
 
-    print(f"✔ Email enviado para {cliente['Cliente prospect']} ({cliente['e-mail']})")
+    print(f"✔ Email enviado para {cliente['Cliente prospect']} - {cliente['Contato']} ({cliente['e-mail']})")
 
 '''
 df = df.map(lambda x: x.strip().replace('\n', '').replace('-', '').replace('(', '').
